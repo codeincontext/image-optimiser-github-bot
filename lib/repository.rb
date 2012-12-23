@@ -64,7 +64,7 @@ class ImageOptimiser
     end
 
     def push
-      puts cmd "git commit -m\"Optimised images\""
+      puts cmd "git commit -m\"Optimised images\" --author \"imageoptimiser <imageoptimiser@skatty.me>\""
       puts cmd "git push -u"
     end
 
