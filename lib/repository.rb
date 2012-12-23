@@ -75,12 +75,13 @@ class ImageOptimiser
       params = {
         :title => "Optimise images",
         :body => text,
-        :head => "#{name}:master",
+        :head => "imageoptimiser:master",
         :base => "master"
       }.to_json
       response = self.class.post("/repos/#{@path}/pulls", { :body => params} )
       
       # puts response.inspect
+      puts response.code
       # raise "nope" unless response.code == 201
     end
     
