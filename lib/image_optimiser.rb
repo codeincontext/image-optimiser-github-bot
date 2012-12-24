@@ -7,12 +7,13 @@ class ImageOptimiser
   IGNORED_FOLDERS_REGEX = Regexp.new(IGNORED_FOLDERS.join("|"))
   UNITS = %W(B KB MB).freeze
 
-  def optimise_repository(path)
+  def optimise_repository(path, force_pull_request=false)
     repo = Repository.new(path)    
     repo.fork
     optimisation_results = repo.optimise
     
-    if optimisation_results[:percentage_of_assets] > 5 or optimisation_results[:saved] > 512_000
+    significant_improvement = optimisation_results[:percentage_of_assets] > 10 and optimisation_results[:saved] > 25_000
+    if significant_improvement or force_pull_request
       repo.push
       repo.pull_request optimisation_results
     else
