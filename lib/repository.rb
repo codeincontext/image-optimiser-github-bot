@@ -116,7 +116,7 @@ class ImageOptimiser
     
     def generate_pull_text(data)
       text = <<-eos
-Hi, maintainer.
+Hi, #{@path.split('/').first}.
 
 I've taken the liberty of putting #{name}'s image assets though a range of optimisation tools. Image optimisation allows us to reduce the footprint of images - meaning faster load times at no cost to image quality. It does this by finding the best (lossless) compression parameters, stripping embedded comments, and removing unnecessary colour profiles. [See more](http://port3000.co.uk/imageoptimiser-a-github-bot-to-proactively-op).
 
