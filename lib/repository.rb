@@ -23,43 +23,40 @@ class ImageOptimiser
         paths << path if File.file?(path) && io.optimizable?(path) && path !~ IGNORED_FOLDERS_REGEX
       end
       total_asset_size = 0
-      size_before_optimisation = 0
-      size_after_optimisation = 0
+      total_saved = 0
       optimisable_images = 0
-
       results = io.optimize_images(paths) do |src, dst|
         total_asset_size += src.size
         nil
-        # puts src
         if dst
-          size_before_optimisation += src.size
-          size_after_optimisation += dst.size
           optimisable_images += 1
-          
           saved = src.size - dst.size
+          total_saved += saved
           percentage = (saved.to_f/src.size.to_f)*100
           percentage = "#{("%0.2f" % percentage)}%"
-          # dst.replace(src)
-          file_to_add = src.to_s.sub("#{local_path}/",'')
-          cmd "git add #{file_to_add}"
           
+          dst.replace(src)
           {:name => src.to_s, :percentage => percentage}
         end
       end
-      
-      saved = size_before_optimisation - size_after_optimisation
+      results.compact!
 
+      # add files to git outside optimisation loop to avoid threading issues
+      git_filepaths = results.map { |r| r[:name].sub("#{local_path}/",'') }
+      cmd "git add #{git_filepaths.join(' ')}"
+      
+      
+      puts "total asset size: #{total_asset_size}"
       {
         :optimisable_images => optimisable_images,
-        :saved => saved,
-        :average_saving => (saved.to_f/size_before_optimisation.to_f)*100,
-        :percentage_of_assets => (saved.to_f/total_asset_size.to_f)*100,
+        :saved => total_saved,
+        :percentage_of_assets => (total_saved.to_f/total_asset_size.to_f)*100,
         :results => results
       }
     end
 
     def push
-      puts cmd "git commit -m\"Optimised images\" --author \"imageoptimiser <imageoptimiser@skatty.me>\""
+      puts cmd "git commit -m\"Optimised images\" --author \"imageoptimiser <skattyadz+imageoptimiser@gmail.com>\""
       puts cmd "git push -u"
     end
 
@@ -68,14 +65,13 @@ class ImageOptimiser
       
       puts text
       params = {
-        :title => "Optimise images",
+        :title => "Optimise images (#{as_size(data[:saved])} reduction)",
         :body => text,
         :head => "imageoptimiser:master",
         :base => "master"
       }.to_json
       response = self.class.post("/repos/#{@path}/pulls", { :body => params} )
       
-      # puts response.inspect
       puts response.code
       # raise "nope" unless response.code == 201
     end
@@ -86,7 +82,7 @@ class ImageOptimiser
     
   private
     def cmd(command)
-      `cd #{local_path}; #{command}`
+      `cd #{local_path} && #{command}`
     end
     
     def name
