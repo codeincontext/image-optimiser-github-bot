@@ -12,7 +12,7 @@ class ImageOptimiser
     repo.fork
     optimisation_results = repo.optimise
     
-    significant_improvement = optimisation_results[:percentage_of_assets] > 10 and optimisation_results[:saved] > 25_000
+    significant_improvement = optimisation_results[:percentage_of_assets] > 10 && optimisation_results[:saved] > 25_000
     if significant_improvement or force_pull_request
       repo.push
       repo.pull_request optimisation_results
