@@ -42,8 +42,10 @@ class ImageOptimiser
       results.compact!
 
       # add files to git outside optimisation loop to avoid threading issues
-      git_filepaths = results.map { |r| r[:name].sub("#{local_path}/",'') }
-      cmd "git add #{git_filepaths.join(' ')}"
+      if optimisable_images > 0
+        git_filepaths = results.map { |r| r[:name].sub("#{local_path}/",'') }
+        cmd "git add #{git_filepaths.join(' ')}"
+      end
       
       
       puts "total asset size: #{total_asset_size}"

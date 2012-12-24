@@ -8,7 +8,9 @@ class ImageOptimiser
   UNITS = %W(B KB MB).freeze
 
   def optimise_repository(path, force_pull_request=false)
-    repo = Repository.new(path)    
+    repo = Repository.new(path)
+    repo.delete_files #in case of previous failure
+    
     repo.fork
     optimisation_results = repo.optimise
     
