@@ -117,19 +117,21 @@ class ImageOptimiser
       text = <<-eos
 Hi, maintainer.
 
-I've taken the liberty of putting #{name}'s image assets though a range of optimisation tools. Image optimisation allows us to reduce the footprint of images - meaning faster load times at no cost to image quality. It does this by finding the best (lossless) compression parameters, stripping embedded comments, and removing unnecessary colour profiles.
+I've taken the liberty of putting #{name}'s image assets though a range of optimisation tools. Image optimisation allows us to reduce the footprint of images - meaning faster load times at no cost to image quality. It does this by finding the best (lossless) compression parameters, stripping embedded comments, and removing unnecessary colour profiles. [See more](http://port3000.co.uk/imageoptimiser-a-github-bot-to-proactively-op).
 
 I found #{data[:optimisable_images]} optimisable images, making a #{as_size(data[:saved])} reduction in size. That's about #{("%0.2f" % data[:percentage_of_assets])}% of your total image assets.
 
-
+Merry Christmas.
 
       eos
 
       text << "<table><tr><th>Name</th><th>Reduction</th></tr>"
-      text = data[:results].compact.inject(text) do |t, r|
+      text = data[:results].inject(text) do |t, r|
         t + "<tr><td>#{r[:name].split('/').last}</td><td>#{r[:percentage]}</td></tr>"
       end
-      text << "</tr></table>"
+      text << "</tr></table>
+
+Tools used: advpng, gifsicle, jpegoptim, jpegrescan, jpegtran, optipng, pngcrush, pngout. This is an automated bot maintained by [@skattyadz](https://twitter.com/skattyadz)"
       
       text
     end
