@@ -58,8 +58,8 @@ class ImageOptimiser
     end
 
     def push
-      puts cmd "git commit -m\"Optimised images\" --author \"imageoptimiser <skattyadz+imageoptimiser@gmail.com>\""
-      puts cmd "git push -u"
+      cmd "git commit -m\"Optimised images\" --author \"imageoptimiser <skattyadz+imageoptimiser@gmail.com>\""
+      cmd "git push -u"
     end
 
     def pull_request(data)
