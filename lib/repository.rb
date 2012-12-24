@@ -73,7 +73,10 @@ class ImageOptimiser
       response = self.class.post("/repos/#{@path}/pulls", { :body => params} )
       
       puts response.code
-      # raise "nope" unless response.code == 201
+      if response.code == 201
+        puts response.inspect
+        raise "pull request failed" 
+      end
     end
     
     def delete_files
