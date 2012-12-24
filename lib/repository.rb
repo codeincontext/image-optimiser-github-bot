@@ -22,11 +22,6 @@ class ImageOptimiser
       Find.find(local_path) do |path|
         paths << path if File.file?(path) && io.optimizable?(path) && path !~ IGNORED_FOLDERS_REGEX
       end
-
-      def size_percent(src_size, dst_size)
-        '%5.2f%% %s' % [100 - 100.0 * dst_size / src_size, src_size - dst_size]
-      end
-
       total_asset_size = 0
       size_before_optimisation = 0
       size_after_optimisation = 0
