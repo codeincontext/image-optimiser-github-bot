@@ -13,16 +13,18 @@ io = ImageOptimiser.new
 
 while true
   queue, repo = REDIS.blpop "imageoptimiser:queue"
-  next if REDIS.exists "imageoptimiser:success:#{repo}" #or REDIS.exists "imageoptimiser:fail:#{repo}"
+  next if REDIS.exists "imageoptimiser:success:#{repo}"
   
   begin
     puts "processing #{repo}"
     io.optimise_repository repo
     puts "success: #{repo}"
+    REDIS.del "imageoptimiser:fail:#{repo}"
     REDIS.set "imageoptimiser:success:#{repo}", Time.now.utc
-  rescue
-    puts "fail: #{repo}"
-    puts $!, $@
+  rescue => e
+    puts "fail: #{e.message}"
+    puts e.backtrace
     REDIS.set "imageoptimiser:fail:#{repo}", Time.now.utc
+    REDIS.rpush "imageoptimiser:queue", repo
   end
 end

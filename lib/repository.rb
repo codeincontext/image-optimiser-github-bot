@@ -1,4 +1,8 @@
 class ImageOptimiser
+  
+  class PullRequestFailureException < RuntimeError; end
+  class ForkException < RuntimeError; end
+  
   class Repository
     include HTTParty
     base_uri 'api.github.com:443'
@@ -11,9 +15,13 @@ class ImageOptimiser
 
     def fork
       response = self.class.post("/repos/#{@path}/forks")
-      raise "nope" unless response.code == 202
+      raise ForkException, "Code: #{response.code}" unless response.code == 202
 
       `cd repos; git clone ssh://ghio/imageoptimiser/#{name}.git`
+      
+      commit_count = cmd('git count-objects').split(' ').first.to_i
+      puts "commit count: #{commit_count}"
+      raise ForkException if commit_count == 0
     end
 
     def optimise
@@ -27,7 +35,7 @@ class ImageOptimiser
       optimisable_images = 0
       results = io.optimize_images(paths) do |src, dst|
         total_asset_size += src.size
-        nil
+
         if dst
           optimisable_images += 1
           saved = src.size - dst.size
@@ -37,6 +45,8 @@ class ImageOptimiser
           
           dst.replace(src)
           {:name => src.to_s, :percentage => percentage}
+        else
+          nil
         end
       end
       results.compact!
@@ -44,11 +54,10 @@ class ImageOptimiser
       # add files to git outside optimisation loop to avoid threading issues
       if optimisable_images > 0
         git_filepaths = results.map { |r| r[:name].sub("#{local_path}/",'') }
+        puts git_filepaths
         cmd "git add #{git_filepaths.join(' ')}"
       end
       
-      
-      puts "total asset size: #{total_asset_size}"
       {
         :optimisable_images => optimisable_images,
         :saved => total_saved,
@@ -59,7 +68,7 @@ class ImageOptimiser
 
     def push
       cmd "git commit -m\"Optimised images\" --author \"imageoptimiser <skattyadz+imageoptimiser@gmail.com>\""
-      cmd "git push -u"
+      cmd "git push origin master:optimised-images"
     end
 
     def pull_request(data)
@@ -69,7 +78,7 @@ class ImageOptimiser
       params = {
         :title => "Optimise images (#{as_size(data[:saved])} reduction)",
         :body => text,
-        :head => "imageoptimiser:master",
+        :head => "imageoptimiser:optimised-images",
         :base => "master"
       }.to_json
       response = self.class.post("/repos/#{@path}/pulls", { :body => params} )
@@ -77,7 +86,7 @@ class ImageOptimiser
       puts response.code
       unless response.code == 201
         puts response.inspect
-        raise "pull request failed" 
+        raise PullRequestFailureException 
       end
     end
     
